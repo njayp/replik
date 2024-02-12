@@ -1,11 +1,11 @@
-# runs main.go
+# runs server
 .PHONY: run
 run:
 	go run cmd/server/main.go
 	
 .PHONY: test
 test:
-	go test ./...
+	go test -v -timeout 10m ./...
 
 .PHONY: gen
 gen: gen-grpc gen-go

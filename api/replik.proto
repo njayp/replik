@@ -1,0 +1,23 @@
+syntax = "proto3";
+package api;
+option go_package = "./api";
+
+service Replik {
+    rpc Status(Empty) returns (StatusResponse); 
+    rpc File(FileRequest) returns (stream Chunk); 
+}
+
+message Empty {}
+
+message StatusResponse {
+    string status = 1;
+}
+
+message FileRequest {
+    string filename = 1;
+}
+
+message Chunk {
+    bytes data = 1;
+    int64 size = 2;
+}
