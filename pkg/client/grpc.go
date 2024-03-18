@@ -16,13 +16,13 @@ var DefaultClient = Client{manager: manager.NewManager()}
 
 func (c *Client) GetFile(ctx context.Context, filename string) error {
 	client := conn.NewClient()
-	stream, err := client.File(ctx, &api.FileRequest{Filename: "coon.jpg"})
+	stream, err := client.File(ctx, &api.FileRequest{Filename: filename})
 	if err != nil {
 		return err
 	}
 
 	ch := make(chan *api.Chunk)
-	go c.manager.WritePart(ctx, filename, ch)
+	go c.manager.WriteFileFromCh(ctx, filename, ch)
 
 	for {
 		select {

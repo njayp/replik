@@ -7,5 +7,5 @@ import (
 )
 
 type Manager interface {
-	WritePart(ctx context.Context, filename string, ch <-chan *api.Chunk) error
+	WriteFileFromCh(ctx context.Context, filename string, ch <-chan *api.Chunk) error
 }

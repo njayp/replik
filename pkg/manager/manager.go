@@ -5,16 +5,16 @@ import (
 )
 
 func NewManager() *Manager {
-	return &Manager{buffer: make(map[string]*os.File)}
+	return &Manager{files: make(map[string]*os.File)}
 }
 
 type Manager struct {
-	buffer map[string]*os.File
+	files map[string]*os.File
 }
 
 // TODO combine funcs
 func (fm *Manager) EnsureFileRO(path string) (*os.File, error) {
-	cache, ok := fm.buffer[path]
+	cache, ok := fm.files[path]
 	if ok {
 		return cache, nil
 	}
@@ -25,12 +25,12 @@ func (fm *Manager) EnsureFileRO(path string) (*os.File, error) {
 		return nil, err
 	}
 
-	fm.buffer[path] = file
+	fm.files[path] = file
 	return file, nil
 }
 
 func (b *Manager) close() {
-	for _, v := range b.buffer {
+	for _, v := range b.files {
 		v.Close()
 	}
 }

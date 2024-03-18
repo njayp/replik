@@ -7,5 +7,5 @@ import (
 )
 
 type Manager interface {
-	ReadPart(ctx context.Context, req *api.FileRequest) <-chan *api.Chunk
+	ReadFileToCh(ctx context.Context, req *api.FileRequest) <-chan *api.Chunk
 }

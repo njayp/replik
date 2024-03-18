@@ -14,20 +14,17 @@ type Service struct {
 	manager Manager
 }
 
-func NewService() {
+func NewService() error {
 	lis := conn.NewListener()
 	s := grpc.NewServer()
 	// manager chosen here
 	api.RegisterReplikServer(s, &Service{manager: manager.NewManager()})
-	err := s.Serve(lis)
-	if err != nil {
-		panic(err) // server crashed
-	}
+	return s.Serve(lis)
 }
 
-func (s *Service) Part(req *api.FileRequest, stream api.Replik_FileServer) error {
+func (s *Service) File(req *api.FileRequest, stream api.Replik_FileServer) error {
 	ctx := stream.Context()
-	ch := s.manager.ReadPart(ctx, req)
+	ch := s.manager.ReadFileToCh(ctx, req)
 	for {
 		select {
 		case <-ctx.Done():
@@ -36,6 +33,7 @@ func (s *Service) Part(req *api.FileRequest, stream api.Replik_FileServer) error
 			stream.Send(chunk)
 		}
 
+		// if ch is nil, we are done reading
 		if ch == nil {
 			break
 		}

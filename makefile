@@ -5,7 +5,8 @@ run:
 	
 .PHONY: test
 test:
-	go test -v -timeout 10m ./...
+# -timeout 10m
+	go test -v ./...
 
 .PHONY: gen
 gen: gen-grpc gen-go
