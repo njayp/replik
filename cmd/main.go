@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/njayp/replik/pkg/server"
+	"github.com/njayp/replik/pkg/grpc/server"
 )
 
 func main() {
