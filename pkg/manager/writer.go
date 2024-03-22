@@ -5,14 +5,12 @@ import (
 	"context"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/njayp/replik/pkg/api"
 )
 
-// blocks until ctx is cancelled
-func (m *Manager) WriteFileFromCh(ctx context.Context, filename string, ch <-chan *api.Chunk) error {
-	path := filepath.Join("output", filename)
+// blocks. cancel ctx to flush and close
+func (m *Manager) WriteFileFromCh(ctx context.Context, path string, ch <-chan *api.Chunk) error {
 	// TODO use manager
 	f, err := os.Create(path)
 	if err != nil {
@@ -25,14 +23,14 @@ func (m *Manager) WriteFileFromCh(ctx context.Context, filename string, ch <-cha
 	return WriteFromCh(ctx, buf, ch)
 }
 
-// blocks. uses writer to write bytes from channel until ctx is cancelled
+// blocks. writes bytes from channel until ctx is cancelled
 func WriteFromCh(ctx context.Context, w io.Writer, ch <-chan *api.Chunk) error {
 	for {
 		select {
 		case <-ctx.Done():
-			println("writer ctx cancelled")
 			return nil
 		case chunk := <-ch:
+			// TODO look at again
 			if _, err := w.Write(chunk.GetData()[:chunk.GetSize()]); err != nil {
 				return err
 			}

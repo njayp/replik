@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"io"
 
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/conn"
@@ -9,20 +10,22 @@ import (
 )
 
 type Client struct {
-	manager Manager
+	manager *manager.Manager
 }
 
 var DefaultClient = Client{manager: manager.NewManager()}
 
-func (c *Client) GetFile(ctx context.Context, filename string) error {
+func (c *Client) GetFile(ctx context.Context, path string) error {
 	client := conn.NewClient()
-	stream, err := client.File(ctx, &api.FileRequest{Filename: filename})
+	stream, err := client.GetFile(ctx, &api.FileRequest{Path: path})
 	if err != nil {
 		return err
 	}
 
 	ch := make(chan *api.Chunk)
-	go c.manager.WriteFileFromCh(ctx, filename, ch)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go c.manager.WriteFileFromCh(ctx, path, ch)
 
 	for {
 		select {
@@ -31,10 +34,13 @@ func (c *Client) GetFile(ctx context.Context, filename string) error {
 		default:
 			chunk, err := stream.Recv()
 			if err != nil {
+				// graceful end of stream
+				if err == io.EOF {
+					return nil
+				}
 				return err
 			}
 			ch <- chunk
 		}
-
 	}
 }

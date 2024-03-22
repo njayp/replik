@@ -20,5 +20,9 @@
 # Go workspace file
 go.work
 
-assets
+# mac
+.DS_STORE
+
 output
+test.txt
+coon.jpg

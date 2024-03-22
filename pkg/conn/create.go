@@ -28,6 +28,5 @@ func NewClient() api.ReplikClient {
 	if err != nil {
 		panic(err)
 	}
-	//defer conn.Close()
 	return api.NewReplikClient(conn)
 }

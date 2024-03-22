@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/conn"
@@ -11,18 +12,26 @@ import (
 
 type Service struct {
 	api.UnimplementedReplikServer
-	manager Manager
+	manager *manager.Manager
 }
 
 func NewService() error {
 	lis := conn.NewListener()
 	s := grpc.NewServer()
-	// manager chosen here
 	api.RegisterReplikServer(s, &Service{manager: manager.NewManager()})
 	return s.Serve(lis)
 }
 
-func (s *Service) File(req *api.FileRequest, stream api.Replik_FileServer) error {
+func (s *Service) GetPathInfo(context.Context, *api.PathInfoRequest) (*api.PathInfo, error) {
+	// TODO add tree stuct getter to manager
+	tree, err := json.Marshal("testo")
+	if err != nil {
+		return nil, err
+	}
+	return &api.PathInfo{Tree: tree}, nil
+}
+
+func (s *Service) GetFile(req *api.FileRequest, stream api.Replik_GetFileServer) error {
 	ctx := stream.Context()
 	ch := s.manager.ReadFileToCh(ctx, req)
 	for {
@@ -30,18 +39,15 @@ func (s *Service) File(req *api.FileRequest, stream api.Replik_FileServer) error
 		case <-ctx.Done():
 			return nil
 		case chunk := <-ch:
+			// ch is closed
+			if chunk == nil {
+				return nil
+			}
 			stream.Send(chunk)
 		}
-
-		// if ch is nil, we are done reading
-		if ch == nil {
-			break
-		}
 	}
-
-	return nil
 }
 
-func (s *Service) Status(context.Context, *api.Empty) (*api.StatusResponse, error) {
-	return &api.StatusResponse{Status: "alive"}, nil
+func (s *Service) GetStatus(context.Context, *api.Empty) (*api.Status, error) {
+	return &api.Status{Status: "alive"}, nil
 }

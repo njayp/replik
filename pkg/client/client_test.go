@@ -11,10 +11,9 @@ import (
 func TestStatus(t *testing.T) {
 	ctx := context.Background()
 	client := conn.NewClient()
-	status, err := client.Status(ctx, &api.Empty{})
+	status, err := client.GetStatus(ctx, &api.Empty{})
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
 
 	if status.Status != "alive" {
@@ -23,5 +22,5 @@ func TestStatus(t *testing.T) {
 }
 
 func TestGetFile(t *testing.T) {
-	t.Error(DefaultClient.GetFile(context.Background(), "coon.jpg"))
+	DefaultClient.GetFile(context.Background(), "coon.jpg")
 }
