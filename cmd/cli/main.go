@@ -6,32 +6,23 @@ import (
 )
 
 func main() {
-	cmd().Execute()
+	rootCmd().Execute()
 }
 
-func cmd() *cobra.Command {
+func rootCmd() *cobra.Command {
 	cmd := &cobra.Command{}
-	cmd.AddCommand(sub())
+	cmd.AddCommand(getCmd())
 	return cmd
 }
 
-func sub() *cobra.Command {
+func getCmd() *cobra.Command {
 	return &cobra.Command{
-		Use: "get",
-		Run: func(cmd *cobra.Command, args []string) {
-			ctx := cmd.Context()
-			client := client.NewClient()
-			files, err := client.List(ctx, args[0])
-			if err != nil {
-				panic(err)
-			}
-			for _, file := range files.Files {
-				// TODO create waitgroup and wait until all finish. maybe flush manager
-				err := client.File(ctx, file.Path)
-				if err != nil {
-					println(err.Error())
-				}
-			}
-		},
+		Use:  "get",
+		Run:  Get,
+		Args: cobra.ExactArgs(1),
 	}
+}
+
+func Get(cmd *cobra.Command, args []string) {
+	client.Get(cmd.Context(), args[0])
 }

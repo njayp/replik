@@ -1,33 +1,45 @@
 package server
 
 import (
+	"bufio"
 	"context"
+	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
 
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/conn"
-	"github.com/njayp/replik/pkg/manager"
 	"google.golang.org/grpc"
 )
 
+const chunkSize = 64 * 1024 // 64 KiB
+
 type Service struct {
 	api.UnimplementedReplikServer
-	manager *manager.Manager
 }
 
 func NewService() error {
 	lis := conn.NewListener()
 	s := grpc.NewServer()
-	m := manager.NewManager()
-	defer m.Close()
-	api.RegisterReplikServer(s, &Service{manager: m})
+	api.RegisterReplikServer(s, &Service{})
 	return s.Serve(lis)
 }
 
 func (s *Service) GetFileList(ctx context.Context, r *api.FileListRequest) (*api.FileList, error) {
 	var files []*api.File
-	err := filepath.WalkDir(r.Path, func(path string, d fs.DirEntry, err error) error {
+
+	fileInfo, err := os.Stat(r.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	if !fileInfo.IsDir() {
+		files = append(files, &api.File{Path: r.Path})
+		return &api.FileList{Files: files}, nil
+	}
+
+	err = filepath.WalkDir(r.Path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -44,19 +56,31 @@ func (s *Service) GetFileList(ctx context.Context, r *api.FileListRequest) (*api
 	return &api.FileList{Files: files}, nil
 }
 
-func (s *Service) GetFile(req *api.FileRequest, stream api.Replik_GetFileServer) error {
+func (s *Service) GetFile(r *api.FileRequest, stream api.Replik_GetFileServer) error {
 	ctx := stream.Context()
-	ch := s.manager.ReadFileToCh(ctx, req)
+	file, err := os.Open(r.Path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	buf := bufio.NewReader(file)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case chunk := <-ch:
-			// ch is closed
-			if chunk == nil {
+		default:
+			bytes := make([]byte, chunkSize)
+			n, err := buf.Read(bytes)
+			if err != nil && err != io.EOF {
+				return err
+			}
+
+			if n == 0 {
 				return nil
 			}
-			stream.Send(chunk)
+
+			stream.Send(&api.Chunk{Data: bytes, Size: int64(n)})
 		}
 	}
 }

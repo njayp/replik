@@ -24,6 +24,4 @@ go.work
 .DS_STORE
 
 output
-test.txt
-coon.jpg
 test

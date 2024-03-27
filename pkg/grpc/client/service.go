@@ -1,25 +1,33 @@
 package client
 
 import (
+	"bufio"
 	"context"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/conn"
-	"github.com/njayp/replik/pkg/manager"
 )
 
 type Client struct {
-	client  api.ReplikClient
-	manager *manager.Manager
+	client api.ReplikClient
 }
 
 func NewClient() *Client {
-	return &Client{client: api.NewReplikClient(conn.NewConn()), manager: manager.NewManager()}
+	return &Client{client: api.NewReplikClient(conn.NewConn())}
 }
 
 func (c *Client) List(ctx context.Context, path string) (*api.FileList, error) {
 	return c.client.GetFileList(ctx, &api.FileListRequest{Path: path})
+}
+
+func create(p string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(p), 0770); err != nil {
+		return nil, err
+	}
+	return os.Create(p)
 }
 
 func (c *Client) File(ctx context.Context, path string) error {
@@ -28,8 +36,13 @@ func (c *Client) File(ctx context.Context, path string) error {
 		return err
 	}
 	ctx = stream.Context()
-	ch := make(chan *api.Chunk)
-	go c.manager.WriteFileFromCh(ctx, path, ch)
+	file, err := create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	buf := bufio.NewWriter(file)
+	defer buf.Flush() // defer is FILO
 
 	for {
 		select {
@@ -44,7 +57,7 @@ func (c *Client) File(ctx context.Context, path string) error {
 				}
 				return err
 			}
-			ch <- chunk
+			buf.Write(chunk.GetData()[:chunk.GetSize()])
 		}
 	}
 }
