@@ -3,24 +3,22 @@ package client
 import (
 	"context"
 	"testing"
-
-	"github.com/njayp/replik/pkg/api"
-	"github.com/njayp/replik/pkg/conn"
 )
 
 func TestStatus(t *testing.T) {
-	ctx := context.Background()
-	client := conn.NewClient()
-	status, err := client.GetStatus(ctx, &api.Empty{})
+	status, err := NewClient().Status(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if status.Status != "alive" {
+	if status.Status != "ok" {
 		t.Error(status.Status)
 	}
 }
 
 func TestGetFile(t *testing.T) {
-	DefaultClient.GetFile(context.Background(), "coon.jpg")
+	err := NewClient().File(context.Background(), "coon.jpg")
+	if err != nil {
+		t.Error(err)
+	}
 }

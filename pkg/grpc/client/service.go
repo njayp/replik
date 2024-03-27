@@ -10,21 +10,25 @@ import (
 )
 
 type Client struct {
+	client  api.ReplikClient
 	manager *manager.Manager
 }
 
-var DefaultClient = Client{manager: manager.NewManager()}
+func NewClient() *Client {
+	return &Client{client: api.NewReplikClient(conn.NewConn()), manager: manager.NewManager()}
+}
 
-func (c *Client) GetFile(ctx context.Context, path string) error {
-	client := conn.NewClient()
-	stream, err := client.GetFile(ctx, &api.FileRequest{Path: path})
+func (c *Client) List(ctx context.Context, path string) (*api.FileList, error) {
+	return c.client.GetFileList(ctx, &api.FileListRequest{Path: path})
+}
+
+func (c *Client) File(ctx context.Context, path string) error {
+	stream, err := c.client.GetFile(ctx, &api.FileRequest{Path: path})
 	if err != nil {
 		return err
 	}
-
+	ctx = stream.Context()
 	ch := make(chan *api.Chunk)
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	go c.manager.WriteFileFromCh(ctx, path, ch)
 
 	for {
@@ -43,4 +47,8 @@ func (c *Client) GetFile(ctx context.Context, path string) error {
 			ch <- chunk
 		}
 	}
+}
+
+func (c *Client) Status(ctx context.Context) (*api.Status, error) {
+	return c.client.GetStatus(ctx, &api.Empty{})
 }

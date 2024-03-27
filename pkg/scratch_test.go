@@ -16,7 +16,8 @@ func TestRecJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	box := Item{}
+
+	var box *Item
 	err = json.Unmarshal(bytes, &box)
 	if err != nil {
 		t.Fatal(err)

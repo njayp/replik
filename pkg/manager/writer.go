@@ -5,21 +5,27 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/njayp/replik/pkg/api"
 )
 
-// blocks. cancel ctx to flush and close
+func create(p string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(p), 0770); err != nil {
+		return nil, err
+	}
+	return os.Create(p)
+}
+
+// blocks. cancel ctx to flush
 func (m *Manager) WriteFileFromCh(ctx context.Context, path string, ch <-chan *api.Chunk) error {
-	// TODO use manager
-	f, err := os.Create(path)
+	f, err := m.EnsureFile(path, create)
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
 
 	buf := bufio.NewWriter(f)
-	defer buf.Flush() // defer is FILO
+	defer buf.Flush()
 	return WriteFromCh(ctx, buf, ch)
 }
 

@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Replik_GetStatus_FullMethodName   = "/api.Replik/GetStatus"
-	Replik_GetPathInfo_FullMethodName = "/api.Replik/GetPathInfo"
+	Replik_GetFileList_FullMethodName = "/api.Replik/GetFileList"
 	Replik_GetFile_FullMethodName     = "/api.Replik/GetFile"
 )
 
@@ -29,7 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReplikClient interface {
 	GetStatus(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Status, error)
-	GetPathInfo(ctx context.Context, in *PathInfoRequest, opts ...grpc.CallOption) (*PathInfo, error)
+	GetFileList(ctx context.Context, in *FileListRequest, opts ...grpc.CallOption) (*FileList, error)
 	GetFile(ctx context.Context, in *FileRequest, opts ...grpc.CallOption) (Replik_GetFileClient, error)
 }
 
@@ -50,9 +50,9 @@ func (c *replikClient) GetStatus(ctx context.Context, in *Empty, opts ...grpc.Ca
 	return out, nil
 }
 
-func (c *replikClient) GetPathInfo(ctx context.Context, in *PathInfoRequest, opts ...grpc.CallOption) (*PathInfo, error) {
-	out := new(PathInfo)
-	err := c.cc.Invoke(ctx, Replik_GetPathInfo_FullMethodName, in, out, opts...)
+func (c *replikClient) GetFileList(ctx context.Context, in *FileListRequest, opts ...grpc.CallOption) (*FileList, error) {
+	out := new(FileList)
+	err := c.cc.Invoke(ctx, Replik_GetFileList_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (x *replikGetFileClient) Recv() (*Chunk, error) {
 // for forward compatibility
 type ReplikServer interface {
 	GetStatus(context.Context, *Empty) (*Status, error)
-	GetPathInfo(context.Context, *PathInfoRequest) (*PathInfo, error)
+	GetFileList(context.Context, *FileListRequest) (*FileList, error)
 	GetFile(*FileRequest, Replik_GetFileServer) error
 	mustEmbedUnimplementedReplikServer()
 }
@@ -108,8 +108,8 @@ type UnimplementedReplikServer struct {
 func (UnimplementedReplikServer) GetStatus(context.Context, *Empty) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
 }
-func (UnimplementedReplikServer) GetPathInfo(context.Context, *PathInfoRequest) (*PathInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPathInfo not implemented")
+func (UnimplementedReplikServer) GetFileList(context.Context, *FileListRequest) (*FileList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFileList not implemented")
 }
 func (UnimplementedReplikServer) GetFile(*FileRequest, Replik_GetFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetFile not implemented")
@@ -145,20 +145,20 @@ func _Replik_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Replik_GetPathInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PathInfoRequest)
+func _Replik_GetFileList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ReplikServer).GetPathInfo(ctx, in)
+		return srv.(ReplikServer).GetFileList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Replik_GetPathInfo_FullMethodName,
+		FullMethod: Replik_GetFileList_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ReplikServer).GetPathInfo(ctx, req.(*PathInfoRequest))
+		return srv.(ReplikServer).GetFileList(ctx, req.(*FileListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -196,8 +196,8 @@ var Replik_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Replik_GetStatus_Handler,
 		},
 		{
-			MethodName: "GetPathInfo",
-			Handler:    _Replik_GetPathInfo_Handler,
+			MethodName: "GetFileList",
+			Handler:    _Replik_GetFileList_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

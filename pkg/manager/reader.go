@@ -4,20 +4,22 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"os"
 
 	"github.com/njayp/replik/pkg/api"
 )
 
 const chunkSize = 64 * 1024 // 64 KiB
 
-// file is read into ch async, returned ctx is cancelled when finished
+// file is read into ch async, ch is closed when done
 func (m *Manager) ReadFileToCh(ctx context.Context, req *api.FileRequest) <-chan *api.Chunk {
-	file, err := m.EnsureFileRO(req.Path)
+	file, err := m.EnsureFile(req.Path, os.Open)
 	if err != nil {
 		// TODO handle err
 		panic(err)
 	}
 
+	// set file to requested start index
 	file.Seek(req.Index, io.SeekStart)
 	ch := make(chan *api.Chunk)
 	go ReadToCh(ctx, bufio.NewReader(file), ch)
@@ -34,8 +36,8 @@ func ReadToCh(ctx context.Context, r io.Reader, ch chan<- *api.Chunk) error {
 			return err
 		}
 
-		// if EOF and buffer is empty, we are done
 		if n == 0 {
+			// close ch to signal EOF
 			close(ch)
 			return nil
 		}

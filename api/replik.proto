@@ -4,7 +4,7 @@ option go_package = "./api";
 
 service Replik {
     rpc GetStatus(Empty) returns (Status); 
-    rpc GetPathInfo(PathInfoRequest) returns (PathInfo);
+    rpc GetFileList(FileListRequest) returns (FileList);
     rpc GetFile(FileRequest) returns (stream Chunk);
 }
 
@@ -15,12 +15,16 @@ message Status {
     string status = 1;
 }
 
-message PathInfoRequest {
+message FileListRequest {
     string path = 1;
 }
 
-message PathInfo {
-    bytes tree = 1;
+message FileList {
+    repeated File files = 1;
+}
+
+message File {
+    string path = 1;
 }
 
 message FileRequest {

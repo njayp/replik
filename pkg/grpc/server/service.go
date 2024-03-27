@@ -2,7 +2,8 @@ package server
 
 import (
 	"context"
-	"encoding/json"
+	"io/fs"
+	"path/filepath"
 
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/conn"
@@ -18,17 +19,29 @@ type Service struct {
 func NewService() error {
 	lis := conn.NewListener()
 	s := grpc.NewServer()
-	api.RegisterReplikServer(s, &Service{manager: manager.NewManager()})
+	m := manager.NewManager()
+	defer m.Close()
+	api.RegisterReplikServer(s, &Service{manager: m})
 	return s.Serve(lis)
 }
 
-func (s *Service) GetPathInfo(context.Context, *api.PathInfoRequest) (*api.PathInfo, error) {
-	// TODO add tree stuct getter to manager
-	tree, err := json.Marshal("testo")
+func (s *Service) GetFileList(ctx context.Context, r *api.FileListRequest) (*api.FileList, error) {
+	var files []*api.File
+	err := filepath.WalkDir(r.Path, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			files = append(files, &api.File{Path: path})
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
-	return &api.PathInfo{Tree: tree}, nil
+
+	return &api.FileList{Files: files}, nil
 }
 
 func (s *Service) GetFile(req *api.FileRequest, stream api.Replik_GetFileServer) error {
@@ -49,5 +62,5 @@ func (s *Service) GetFile(req *api.FileRequest, stream api.Replik_GetFileServer)
 }
 
 func (s *Service) GetStatus(context.Context, *api.Empty) (*api.Status, error) {
-	return &api.Status{Status: "alive"}, nil
+	return &api.Status{Status: "ok"}, nil
 }

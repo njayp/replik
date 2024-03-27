@@ -1,7 +1,14 @@
 # runs server
 .PHONY: run
 run:
-	go run cmd/server/main.go
+	go run ./cmd/server/main.go
+
+.PHONY: build
+build:
+	rm -rf ./output
+	mkdir -p ./output
+	go build -o ./output/replik ./cmd/cli/main.go
+	go build -o ./output/server ./cmd/server/main.go
 	
 .PHONY: test
 test:
