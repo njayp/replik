@@ -24,5 +24,5 @@ func TestGetFile(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	Get(context.Background(), "pkg")
+	Get(context.Background(), "test")
 }

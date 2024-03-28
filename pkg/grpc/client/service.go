@@ -35,7 +35,6 @@ func (c *Client) File(ctx context.Context, path string) error {
 	if err != nil {
 		return err
 	}
-	ctx = stream.Context()
 	file, err := create(path)
 	if err != nil {
 		return err
@@ -46,7 +45,7 @@ func (c *Client) File(ctx context.Context, path string) error {
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-stream.Context().Done():
 			return nil
 		default:
 			chunk, err := stream.Recv()

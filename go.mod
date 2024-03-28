@@ -3,6 +3,7 @@ module github.com/njayp/replik
 go 1.21
 
 require (
+	github.com/codingconcepts/env v0.0.0-20200821220118-a8fbf8d84482
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/grpc v1.61.0
 	google.golang.org/protobuf v1.32.0
