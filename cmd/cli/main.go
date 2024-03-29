@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/njayp/gcm"
+	"github.com/njayp/replik/pkg/config"
 	"github.com/njayp/replik/pkg/grpc/client"
 	"github.com/spf13/cobra"
 )
@@ -24,5 +26,6 @@ func getCmd() *cobra.Command {
 }
 
 func Get(cmd *cobra.Command, args []string) {
-	client.Get(cmd.Context(), args[0])
+	ctx := gcm.WithEnv[config.Env](cmd.Context())
+	client.Get(ctx, args[0])
 }

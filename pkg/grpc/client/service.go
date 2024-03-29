@@ -3,12 +3,16 @@ package client
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/njayp/gcm"
 	"github.com/njayp/replik/pkg/api"
-	"github.com/njayp/replik/pkg/conn"
+	"github.com/njayp/replik/pkg/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
@@ -16,7 +20,15 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	return &Client{client: api.NewReplikClient(conn.NewConn())}
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	env := gcm.Env[config.Env]()
+	url := fmt.Sprintf("%s:%v", env.Address, env.Port)
+	conn, err := grpc.Dial(url, opts...)
+	if err != nil {
+		panic(err)
+	}
+	return &Client{client: api.NewReplikClient(conn)}
 }
 
 func (c *Client) List(ctx context.Context, path string) (*api.FileList, error) {

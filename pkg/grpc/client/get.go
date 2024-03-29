@@ -9,7 +9,6 @@ import (
 
 func Get(ctx context.Context, path string) {
 	client := NewClient()
-
 	files, err := client.List(ctx, path)
 	if err != nil {
 		panic(err)
