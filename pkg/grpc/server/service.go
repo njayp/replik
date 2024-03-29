@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/njayp/gcm"
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/config"
 	"google.golang.org/grpc"
@@ -21,16 +20,13 @@ type Service struct {
 }
 
 func NewService() error {
-	env := gcm.Env[config.Env]()
-	url := fmt.Sprintf("%s:%v", env.Address, env.Port)
+	url := fmt.Sprintf("%s:%v", config.Env.Address, config.Env.Port)
 	lis, err := net.Listen("tcp", url)
 	if err != nil {
 		panic(err)
 	}
 
-	s := grpc.NewServer(
-		gcm.NewGcmServerOpts(gcm.WithEnv[config.Env])...,
-	)
+	s := grpc.NewServer()
 	api.RegisterReplikServer(s, &Service{})
 	return s.Serve(lis)
 }
@@ -79,7 +75,7 @@ func (s *Service) GetFile(r *api.FileRequest, stream api.Replik_GetFileServer) e
 		case <-ctx.Done():
 			return nil
 		default:
-			bytes := make([]byte, gcm.GetEnv[config.Env](ctx).ChunkSize)
+			bytes := make([]byte, config.Env.ChunkSize)
 			n, err := buf.Read(bytes)
 			if err != nil && err != io.EOF {
 				return err

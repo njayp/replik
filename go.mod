@@ -3,14 +3,13 @@ module github.com/njayp/replik
 go 1.22.1
 
 require (
-	github.com/njayp/gcm v0.0.0-20240329081750-10abe33e1338
+	github.com/codingconcepts/env v0.0.0-20200821220118-a8fbf8d84482
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/grpc v1.62.1
 	google.golang.org/protobuf v1.33.0
 )
 
 require (
-	github.com/codingconcepts/env v0.0.0-20200821220118-a8fbf8d84482 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

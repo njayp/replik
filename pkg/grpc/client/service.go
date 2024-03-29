@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/njayp/gcm"
 	"github.com/njayp/replik/pkg/api"
 	"github.com/njayp/replik/pkg/config"
 	"google.golang.org/grpc"
@@ -22,8 +21,7 @@ type Client struct {
 func NewClient() *Client {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	env := gcm.Env[config.Env]()
-	url := fmt.Sprintf("%s:%v", env.Address, env.Port)
+	url := fmt.Sprintf("%s:%v", config.Env.Address, config.Env.Port)
 	conn, err := grpc.Dial(url, opts...)
 	if err != nil {
 		panic(err)
